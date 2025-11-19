@@ -2,7 +2,7 @@ const AEDOverview = () => {
   return (
     <div className="max-w-3xl mx-auto py-16 px-4">
       {/* Centered heading */}
-      <h2 className="text-2xl sm:text-3xl font-bold text-blue-600 text-left space-y-4 mb-6">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-left space-y-4 mb-6">
         AED Legislation Summaries and Requirements by State
       </h2>
 

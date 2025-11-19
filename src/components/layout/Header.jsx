@@ -1,13 +1,21 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Search, MapPin } from "lucide-react";
-import { getStatesList } from "../../api/aedLawsApi"; // same API as StatesListPage
+import { getStatesList } from "../../api/aedLawsApi";
 
 const Header = () => {
   const [states, setStates] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const navItems = [
+    "Products",
+    "Industries",
+    "Resources",
+    "Company",
+    "Pricing",
+  ];
 
   // Fetch states
   useEffect(() => {
@@ -35,14 +43,12 @@ const Header = () => {
 
   return (
     <div className="w-full">
-
       {/* TOP BANNER */}
       <div
         className="w-full py-6 border-b"
         style={{ backgroundColor: "#d6dcea", borderColor: "#0A1A33" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img
@@ -94,45 +100,79 @@ const Header = () => {
         </div>
       </div>
 
-      {/* MAIN NAVIGATION HEADER */}
       <header
         className="border-b"
         style={{ backgroundColor: "#111686", borderColor: "#0A1A33" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
+            {/* Left Side: Buttons on mobile and Desktop Menu */}
+            <div className="flex items-center space-x-4">
+              {/* Mobile Buttons */}
+              <div className="flex md:hidden space-x-2">
+                <button className="px-3 py-1 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
+                  Contact
+                </button>
+                <button className="px-3 py-1 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
+                  Store
+                </button>
+              </div>
 
-            {/* Navigation Menu */}
-            <nav className="hidden md:flex space-x-10">
-              {["Products", "Industries", "Resources", "Company", "Pricing"].map((item) => (
+              {/* Desktop Menu */}
+              <nav className="hidden md:flex space-x-10">
+                {navItems.map((item) => (
+                  <a
+                    key={item}
+                    href="#"
+                    className="text-sm font-medium text-white relative after:block after:h-[2px] after:w-full after:bg-[#d6dcea] after:absolute after:-bottom-1 after:left-0 after:opacity-0 hover:after:opacity-100"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            {/* Right Side: Buttons on desktop / Hamburger on mobile */}
+            <div className="flex items-center space-x-4">
+              {/* Desktop Buttons */}
+              <div className="hidden md:flex items-center space-x-4">
+                <button className="px-4 py-2 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
+                  Contact
+                </button>
+                <button className="px-4 py-2 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
+                  Store
+                </button>
+              </div>
+
+              {/* Mobile Hamburger */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="text-white text-2xl"
+                >
+                  {isOpen ? "✖" : "☰"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isOpen && (
+          <div className="md:hidden bg-[#111686] border-t border-[#0A1A33]">
+            <nav className="flex flex-col p-4 space-y-2">
+              {navItems.map((item) => (
                 <a
                   key={item}
                   href="#"
-                  className="text-sm font-medium"
-                  style={{ color: "#FFFFFF" }}
+                  className="text-white text-base font-medium relative after:block after:h-[2px] after:w-0 after:bg-[#d6dcea] after:absolute after:-bottom-1 after:left-0 after:transition-all hover:after:w-full"
                 >
                   {item}
                 </a>
               ))}
             </nav>
-
-            {/* Buttons */}
-            <div className="flex items-center space-x-4">
-              <button
-                className="hidden sm:block px-4 py-2 text-sm font-medium rounded-lg transition"
-                style={{ color: "#FFFFFF", border: "1px solid #FFFFFF" }}
-              >
-                Contact
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium rounded-lg transition"
-                style={{ color: "#FFFFFF", border: "1px solid #FFFFFF" }}
-              >
-                Store
-              </button>
-            </div>
           </div>
-        </div>
+        )}
       </header>
     </div>
   );
