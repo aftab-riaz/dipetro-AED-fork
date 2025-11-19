@@ -1,17 +1,22 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import StatesListPage from './pages/StatesListPage';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+
+import HomePage from './pages/HomePage';
 import StateDetailsPage from './pages/StateDetailsPage';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header />
+
         <Routes>
-          <Route path="/" element={<StatesListPage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/aed-laws/:slug" element={<StateDetailsPage />} />
         </Routes>
+
+        <Footer />
       </div>
     </Router>
   );
