@@ -1,12 +1,10 @@
-// Updated USMap component using colors #111686 (hover) and #d6dcea (default background fill)
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { getStatesList } from "../api/aedLawsApi";
 import USMapSVG from "../assets/us-map.svg?react";
+import { StatesContext } from "../context/StatesContext.jsx";
 
 const USMap = () => {
-  const [states, setStates] = useState([]);
+  const { states } = useContext(StatesContext);
   const [hoveredState, setHoveredState] = useState(null);
   const [tooltip, setTooltip] = useState({ name: "", x: 0, y: 0 });
   const [labelPositions, setLabelPositions] = useState([]);
@@ -15,32 +13,25 @@ const USMap = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getStatesList().then(setStates);
-  }, []);
+    if (!svgRef.current || !states.length) return;
 
-  useEffect(() => {
-    if (!svgRef.current) return;
-    const paths = svgRef.current.querySelectorAll("path[id]");
+    const svg = svgRef.current;
+    const paths = svg.querySelectorAll("path[id]");
     if (!paths.length) return;
+
+    const svgRect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
 
     const positions = Array.from(paths).map((path) => {
       const id = path.getAttribute("id");
-      const box = path.getBBox();
-      return { id, x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      const rect = path.getBoundingClientRect();
+      const cx = ((rect.left + rect.width / 2 - svgRect.left) / svgRect.width) * vb.width;
+      const cy = ((rect.top + rect.height / 2 - svgRect.top) / svgRect.height) * vb.height;
+      return { id, x: cx, y: cy };
     });
+
     setLabelPositions(positions);
   }, [states]);
-
-  useEffect(() => {
-    const paths = svgRef.current?.querySelectorAll("path");
-    if (!paths) return;
-    paths.forEach((p) => {
-      p.style.fill = "#d6dcea"; // default fill color
-      p.style.stroke = "#ffffff";
-      p.style.strokeWidth = "1";
-      p.style.transition = "fill 0.25s ease";
-    });
-  }, []);
 
   const handleMouseEnter = (e) => {
     const id = e.target.id;
@@ -58,10 +49,7 @@ const USMap = () => {
     });
   };
 
-  const handleMouseLeave = (e) => {
-    if (svgRef.current && svgRef.current.contains(e.relatedTarget)) return;
-    setHoveredState(null);
-  };
+  const handleMouseLeave = () => setHoveredState(null);
 
   const handleClick = (e) => {
     const id = e.target.id;
@@ -69,16 +57,21 @@ const USMap = () => {
     if (state) navigate(`/aed-laws/${state.slug}`);
   };
 
+  if (!states.length) {
+    return (
+      <div className="w-full py-20 flex justify-center">
+        <div className="animate-spin h-10 w-10 rounded-full border-4 border-[#111686] border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      ref={containerRef}
-      className="relative flex justify-center items-center bg-transparent overflow-visible py-12 px-8"
-    >
-      <div
+    <div ref={containerRef} className="relative flex justify-center items-center bg-transparent overflow-visible py-12 px-8">
+     <div
         className="relative w-full max-w-[1500px] -translate-x-10 sm:-translate-x-16 md:-translate-x-20 lg:-translate-x-28"
         style={{
           transformOrigin: "center",
-          scale: "1.25",
+          scale: "1.25", // ❗ same size you already had
         }}
       >
         <svg
@@ -100,23 +93,24 @@ const USMap = () => {
           {/* Styles */}
           <style>{`
             path {
-              fill: #d6dcea !important; /* default background */
+              fill: #d6dcea !important;
               transition: fill 0.25s ease;
               stroke: #fff;
               stroke-width: 1;
             }
             path:hover {
-              fill: #111686 !important; /* hover color */
+              fill: #111686 !important;
             }
           `}</style>
 
-          {/* Labels */}
+          {/* Labels — SAME SIZE AS BEFORE */}
           {labelPositions.map((pos) => {
             const st = states.find(
               (s) => s.abbreviation === pos.id || s.name === pos.id
             );
             if (!st) return null;
-            const shortLabel = st.abbreviation;
+
+            const isHovered = hoveredState?.abbreviation === st.abbreviation;
 
             return (
               <text
@@ -124,17 +118,18 @@ const USMap = () => {
                 x={pos.x}
                 y={pos.y}
                 textAnchor="middle"
-                fontSize="7"
-                fill={hoveredState?.abbreviation === pos.id ? "#ffffff" : "#4a3e39"}
+                fontSize="7"          // ← SAME VALUE
+                fill={isHovered ? "#ffffff" : "#4a3e39"}
                 fontWeight="600"
                 pointerEvents="none"
               >
-                {shortLabel}
+                {st.abbreviation}
               </text>
             );
           })}
         </svg>
 
+        {/* Tooltip — SAME SIZE & POSITION AS BEFORE */}
         {hoveredState && (
           <div
             className="fixed z-50 bg-white text-black border border-black px-2 py-1 rounded text-xs pointer-events-none"

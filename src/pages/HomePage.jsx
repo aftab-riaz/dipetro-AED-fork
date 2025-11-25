@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { getStatesList } from "../api/aedLawsApi";
+import { useContext } from "react";
+import { StatesContext } from "../context/StatesContext";
 
 import HeroSection from "../components/home/HeroSection";
 import AEDOverview from "../components/home/AEDOverview";
@@ -7,15 +7,7 @@ import USMapSection from "../components/home/USMapSection";
 import StatesList from "../components/home/StatesList";
 
 const HomePage = () => {
-  const [states, setStates] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getStatesList().then((res) => {
-      setStates(res);
-      setLoading(false);
-    });
-  }, []);
+  const { states, loading } = useContext(StatesContext);
 
   return (
     <div className="min-h-screen bg-gray-50">

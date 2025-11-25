@@ -1,16 +1,20 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { MapPin, Search, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { StatesContext } from "../../context/StatesContext";
 
-const HeroSection = ({ states }) => {
+const HeroSection = () => {
+  const { states } = useContext(StatesContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const filteredStates = states.filter((s) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+ const filteredStates = states.filter((s) =>
+  s.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
 
   useEffect(() => {
     const handler = (e) => {
@@ -22,20 +26,30 @@ const HeroSection = ({ states }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSelect = (slug) => {
-    navigate(`/aed-laws/${slug}`);
-    setDropdownOpen(false);
-    setSearchTerm("");
+  const handleSelect = async (slug) => {
+    try {
+      // Call API only when user clicks a state
+      const res = await axios.get(`http://localhost:5000/api/laws/${slug}`);
+      const lawsData = res.data;
+
+      // Navigate to details page with laws data
+      navigate(`/aed-laws/${slug}`, { state: { lawsData } });
+      setDropdownOpen(false);
+      setSearchTerm("");
+    } catch (err) {
+      console.error("Failed to fetch laws:", err);
+      // Fallback: navigate with empty array
+      navigate(`/aed-laws/${slug}`, { state: { lawsData: [] } });
+    }
   };
 
   return (
-    <div className="text-center mb-12 pt-16"> {/* Added top padding */}
-      <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8"> {/* Bigger heading */}
+    <div className="text-center mb-12 pt-16">
+      <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8">
         AED State Laws
       </h1>
 
-      {/* DROPDOWN */}
-      <div className="relative inline-block w-48 sm:w-52 pb-6" ref={dropdownRef}> {/* Narrower width & bottom padding */}
+      <div className="relative inline-block w-48 sm:w-52 pb-6" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className="flex justify-between items-center w-full bg-[#111686] text-white px-4 py-2 rounded-lg shadow-sm"
@@ -43,9 +57,7 @@ const HeroSection = ({ states }) => {
           Choose your state
           <ChevronDown
             size={18}
-            className={`transition-transform ${
-              dropdownOpen ? "rotate-180" : ""
-            }`}
+            className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
           />
         </button>
 

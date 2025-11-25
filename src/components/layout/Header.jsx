@@ -1,44 +1,40 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useContext } from "react";
 import { Search, MapPin } from "lucide-react";
-import { getStatesList } from "../../api/aedLawsApi";
+import { StatesContext } from "../../context/StatesContext";
+import axios from "axios";
 
 const Header = () => {
-  const [states, setStates] = useState([]);
+  const { states } = useContext(StatesContext); // ✅ use context
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const navItems = [
-    "Products",
-    "Industries",
-    "Resources",
-    "Company",
-    "Pricing",
-  ];
+  const navigate = useNavigate();
 
-  // Fetch states
-  useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        const data = await getStatesList();
-        setStates(data);
-      } catch (error) {
-        console.error("Error fetching states:", error);
-      }
-    };
-    fetchStates();
-  }, []);
+  const navItems = ["Products", "Industries", "Resources", "Company", "Pricing"];
 
-  // Filter states
   const filteredStates = states.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSelect = (slug) => {
-    navigate(`/aed-laws/${slug}`);
-    setDropdownOpen(false);
-    setSearchTerm("");
+  // ✅ Updated handleSelect to fetch laws on click
+  const handleSelect = async (slug) => {
+    try {
+      // Call backend to get laws of clicked state
+      const res = await axios.get(`http://localhost:5000/api/laws/${slug}`);
+      const lawsData = res.data;
+
+      // Navigate to details page with laws data
+      navigate(`/aed-laws/${slug}`, { state: { lawsData } });
+
+      // Reset search/dropdown
+      setDropdownOpen(false);
+      setSearchTerm("");
+    } catch (err) {
+      console.error("Failed to fetch laws:", err);
+      // Fallback: navigate with empty laws array
+      navigate(`/aed-laws/${slug}`, { state: { lawsData: [] } });
+    }
   };
 
   return (
@@ -100,15 +96,15 @@ const Header = () => {
         </div>
       </div>
 
+      {/* NAVBAR */}
       <header
         className="border-b"
         style={{ backgroundColor: "#111686", borderColor: "#0A1A33" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Left Side: Buttons on mobile and Desktop Menu */}
+            {/* Left: menu */}
             <div className="flex items-center space-x-4">
-              {/* Mobile Buttons */}
               <div className="flex md:hidden space-x-2">
                 <button className="px-3 py-1 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
                   Contact
@@ -117,8 +113,6 @@ const Header = () => {
                   Store
                 </button>
               </div>
-
-              {/* Desktop Menu */}
               <nav className="hidden md:flex space-x-10">
                 {navItems.map((item) => (
                   <a
@@ -132,9 +126,8 @@ const Header = () => {
               </nav>
             </div>
 
-            {/* Right Side: Buttons on desktop / Hamburger on mobile */}
+            {/* Right: buttons */}
             <div className="flex items-center space-x-4">
-              {/* Desktop Buttons */}
               <div className="hidden md:flex items-center space-x-4">
                 <button className="px-4 py-2 text-sm font-medium rounded-lg border border-white text-white hover:bg-white hover:text-[#111686] transition">
                   Contact
@@ -143,8 +136,6 @@ const Header = () => {
                   Store
                 </button>
               </div>
-
-              {/* Mobile Hamburger */}
               <div className="md:hidden">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
@@ -157,7 +148,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown */}
         {isOpen && (
           <div className="md:hidden bg-[#111686] border-t border-[#0A1A33]">
             <nav className="flex flex-col p-4 space-y-2">
