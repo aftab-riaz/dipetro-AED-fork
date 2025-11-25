@@ -1,8 +1,27 @@
 import { MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { StatesContext } from "../../context/StatesContext";
+import axios from "axios";
 
-const StatesList = ({ states }) => {
+const StatesList = () => {
   const navigate = useNavigate();
+  const { states } = useContext(StatesContext);
+
+  const handleClick = async (slug) => {
+    try {
+      // Call backend to get laws for the clicked state
+      const res = await axios.get(`http://localhost:5000/api/laws/${slug}`);
+      const lawsData = res.data;
+
+      // Navigate to StateDetailsPage with the laws data
+      navigate(`/aed-laws/${slug}`, { state: { lawsData } });
+    } catch (err) {
+      console.error("Failed to fetch laws:", err);
+      // Navigate with empty array if API fails
+      navigate(`/aed-laws/${slug}`, { state: { lawsData: [] } });
+    }
+  };
 
   return (
     <div className="mt-16">
@@ -15,24 +34,23 @@ const StatesList = ({ states }) => {
           <div
             key={s.slug}
             className="flex items-center gap-2 cursor-pointer hover:text-[#111686]"
-            onClick={() => navigate(`/aed-laws/${s.slug}`)}
+            onClick={() => handleClick(s.slug)}
           >
             <MapPin className="w-4 h-4 text-blue-600" />
             {s.name} AED laws
           </div>
         ))}
       </div>
-      {/* Highlighted paragraph */}
-     <div className="mb-10 pt-16 flex justify-center">
-  <p className="text-left space-y-4 text-gray-900 border-l-4 border-blue-600 p-4 rounded-md text-sm sm:text-sm max-w-md">
-    <strong>This information is for informational purposes only and not intended as legal advice.</strong> 
-    While we make every attempt to ensure the accuracy of the information provided, AED laws and requirements change frequently. 
-    We encourage you to refer to your legal counsel or state agencies with questions about your state's AED laws or AED Good Samaritan requirements.
-  </p>
-</div>
 
+      {/* Highlighted paragraph */}
+      <div className="mb-10 pt-16 flex justify-center">
+        <p className="text-left space-y-4 text-gray-900 border-l-4 border-blue-600 p-4 rounded-md text-sm sm:text-sm max-w-md">
+          <strong>This information is for informational purposes only and not intended as legal advice.</strong>{" "}
+          While we make every attempt to ensure the accuracy of the information provided, AED laws and requirements change frequently. 
+          We encourage you to refer to your legal counsel or state agencies with questions about your state's AED laws or AED Good Samaritan requirements.
+        </p>
+      </div>
     </div>
-    
   );
 };
 
